@@ -1,47 +1,53 @@
 import Html exposing (..)
-import Html.App as App
-import Html.Events exposing (onClick)
+import Html.App as Html
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
 import Json.Decode as Json
 import Task
 
--- MAIN
+
 
 main =
-  App.program
-    { init = init
-    , update = update
+  Html.program
+    { init = init "cats"
     , view = view
+    , update = update
     , subscriptions = subscriptions
     }
 
 
--- INIT
-
-init : (Model, Cmd Msg)
-init =
-  (Model "cats" "waiting.gif", Cmd.none)
-
 
 -- MODEL
+
+
 type alias Model =
   { topic : String
   , gifUrl : String
   }
 
 
--- UPATE
+init : String -> (Model, Cmd Msg)
+init topic =
+  ( Model topic "waiting.gif"
+  , getRandomGif topic
+  )
 
-type Msg 
-  = More
+
+
+-- UPDATE
+
+
+type Msg
+  = MorePlease
   | FetchSucceed String
   | FetchFail Http.Error
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    More ->
+    MorePlease ->
       (model, getRandomGif model.topic)
 
     FetchSucceed newUrl ->
@@ -51,25 +57,32 @@ update msg model =
       (model, Cmd.none)
 
 
+
 -- VIEW
+
 
 view : Model -> Html Msg
 view model =
   div []
-    [ h2 [] [ text model.topic ]
-    , img [ src model.gifUrl ] []
-    , button [ onClick More ] [ text "Gif Me!" ]
+    [ h2 [] [text model.topic]
+    , button [ onClick MorePlease ] [ text "More Please!" ]
+    , br [] []
+    , img [src model.gifUrl] []
     ]
 
 
+
 -- SUBSCRIPTIONS
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
 
+
 -- HTTP
+
 
 getRandomGif : String -> Cmd Msg
 getRandomGif topic =
@@ -78,6 +91,7 @@ getRandomGif topic =
       "https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=" ++ topic
   in
     Task.perform FetchFail FetchSucceed (Http.get decodeGifUrl url)
+
 
 decodeGifUrl : Json.Decoder String
 decodeGifUrl =
