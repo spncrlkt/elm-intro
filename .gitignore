@@ -5,3 +5,6 @@ repl-temp-*
 
 # build artifacts
 main.html
+
+# reprofiles
+AppRepro.elm
